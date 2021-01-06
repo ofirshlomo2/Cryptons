@@ -7,8 +7,8 @@ DOM = {
 CONFIG = {
     COINS_URL: `https://api.coingecko.com/api/v3/coins/list`,
     Home: 'Home_page',
-    LiveReport: 'Live_reaport_page',
-    AboutUs: 'About_us_page',
+    LiveReport: 'liveReport.html',
+    AboutUs: 'aboutPage.html',
     COINS_URL_BY_VALUE: `https://api.coingecko.com/api/v3/coins/`,
 
 }
@@ -19,7 +19,7 @@ let allCoinsArry = [];
 
 function init() {
     getAllData();
-    searchCoin()
+    searchCoin();
 
 }
 
