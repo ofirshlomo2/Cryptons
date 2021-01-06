@@ -17,10 +17,22 @@ let selectedCoins = [];
 let allCoinsArry = [];
 
 
+
+function getState() {
+    try {
+        const result = JSON.parse(localStorage.getItem("selectedCoins")) || [];
+        return result;
+    } catch (ex) {
+        console.error("Local Storage is currupted ");
+        return [];
+    }
+}
+
+
 function init() {
+    selectedCoins = getState();
     getAllData();
     searchCoin();
-
 }
 
 init();
@@ -176,21 +188,23 @@ function getCoinsCard(coinsData) {
 }
 
 
-
-
 function addToSelectedCoins(coinsData) {
     const index = document.getElementById(`#myCheck${coinsData.id}`);
     if (index.checked) {
-        if (selectedCoins.length < 2)
+        if (selectedCoins.length < 2) {
             selectedCoins.push(coinsData)
-        /*   const localStorage = localStorage.setItem(`${coinsData.id}`, JSON.stringify(extendedCoin)) */
-        else
+            localStorage.setItem("selectedCoins", JSON.stringify(selectedCoins));
+            console.log("selectedCoinToStore", selectedCoins)
+
+        } else
+
             return _getModal(selectedCoins, coinsData.id)
     }
     else {
         const deletedIndex = selectedCoins.findIndex((C) => C.id === coinsData.id);
         if (deletedIndex === -1) return;
         selectedCoins.splice(deletedIndex, 1);
+        localStorage.setItem("selectedCoins", JSON.stringify(selectedCoins));
         console.log(selectedCoins);
     }
 
