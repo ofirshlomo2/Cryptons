@@ -11,6 +11,7 @@ CONFIG = {
     AboutUs: 'aboutPage.html',
     COINS_URL_BY_VALUE: `https://api.coingecko.com/api/v3/coins/`,
 
+
 }
 
 let selectedCoins = [];
@@ -33,6 +34,7 @@ function init() {
     selectedCoins = getState();
     getAllData();
     searchCoin();
+    window.localStorage.clear();
 }
 
 init();
@@ -232,7 +234,7 @@ function addToSelectedCoins(coinsData) {
         modalBody.classList.add("modal-body");
         const p = document.createElement("p");
         p.innerText = "Please choose which coin do you want to delet";
-        const allSelectedCoins = creatOptions();
+        const allSelectedCoins = creatOptions(selectedCoins);
         modalBody.append(...allSelectedCoins, p);
 
 
@@ -260,11 +262,11 @@ function addToSelectedCoins(coinsData) {
 
 }
 
-creatOptions = () => {
+function creatOptions() {
     const coinsOptions = selectedCoins.map(coin => { return _selectedCoins(coin.id, coin.symbol) })
     return (coinsOptions)
 
-    function _selectedCoins(ID, name) {
+    function _selectedCoins(ID, CLASS) {
         const divCheckBox = document.createElement("div");
         divCheckBox.className = "custom-checkbox";
         const input = document.createElement("input");
@@ -274,7 +276,7 @@ creatOptions = () => {
         const lable = document.createElement("label");
         lable.className = "custom-control-label";
         lable.setAttribute("for", `checkBox${ID}`)
-        lable.innerText = name;
+        lable.innerText = CLASS;
         divCheckBox.append(input, lable)
         return divCheckBox;
 
@@ -288,9 +290,25 @@ deleteSelected = (coinToDelet) => {
     $("#modalcontent").modal("hide");
 }
 
-saveSelected = () => {
-    console.log("save")
+saveSelected = (keepCurrentCoins) => {
+    const currenCoin = selectedCoins.filter((coin, index) => {
+        const checkedCoin = document.getElementById(`checkBox${coin.id}`)
+        if (checkedCoin.checked)
+            return coin;
+    })
+
+    currenCoin.map(coin => {
+        const IndexsToDel = selectedCoins.findIndex(indexCoin => { return coin.id == indexCoin.id })
+        selectedCoins.splice(IndexsToDel, 1);
+        index = document.getElementById(`SwitchCheck${coin.id}`);
+        index.checked = !index.checked;
+    })
+    selectedCoins.push(keepCurrentCoins)
+    console.log(selectedCoins);
+    $("#modalcontent").modal("hide");
 }
+
+
 
 
 {/* <div class="modal" tabindex="-1">
