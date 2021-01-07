@@ -2,6 +2,7 @@
 DOM = {
     content: document.getElementById("content"),
     loader: document.getElementById("loader"),
+    modalDialog: document.getElementById("modalcontent")
 };
 
 CONFIG = {
@@ -10,37 +11,25 @@ CONFIG = {
     LiveReport: 'liveReport.html',
     AboutUs: 'aboutPage.html',
     COINS_URL_BY_VALUE: `https://api.coingecko.com/api/v3/coins/`,
-
-
 }
 
 let selectedCoins = [];
 let allCoinsArry = [];
-
-
-
-function getState() {
-    try {
-        const result = JSON.parse(localStorage.getItem("selectedCoins")) || [];
-        return result;
-    } catch (ex) {
-        console.error("Local Storage is currupted ");
-        return [];
-    }
-}
+init();
 
 
 function init() {
-    selectedCoins = getState();
-    getAllData();
-    searchCoin();
     window.localStorage.clear();
+    selectedCoins = getState();
+    /*  getAllData(); */
+    searchCoin();
+    getCoinsApi()
 }
 
-init();
-async function getAllData() {
+
+/* async function getAllData() {
     const Coins = await getCoinsApi();
-}
+} */
 
 async function getCoinsApi() {
     try {
@@ -55,11 +44,19 @@ async function getCoinsApi() {
 
         console.log(initResult);
         console.log("arry", allCoinsArry)
-
         draw(initResult);
-
     } catch {
         alert("Failed to fetch data from API");
+    }
+}
+
+function getState() {
+    try {
+        const result = JSON.parse(localStorage.getItem("selectedCoins")) || [];
+        return result;
+    } catch (ex) {
+        console.error("Local Storage is currupted ");
+        return [];
     }
 }
 
@@ -77,16 +74,18 @@ function searchCoin() {
     const searchBT = document.createElement("button");
     searchBT.className = "btn btn-outline-success";
     searchBT.innerText = "Search";
-    searchBT.addEventListener("click", filterCoins)
+    searchBT.addEventListener("click", searchCoinFunction)
     searchDiv.append(input, searchBT);
     return searchDiv;
 }
 
-function filterCoins() {
+function searchCoinFunction() {
+    DOM.loader.style.display = "block";
     const seacrhValue = searchInput.value.toLowerCase();
     const filterArry = allCoinsArry.filter(coin => {
-        return coin.symbol.includes(seacrhValue.toLowerCase()) || coin.symbol.toLowerCase().includes(seacrhValue.toLowerCase())
+        coin.symbol.includes(seacrhValue.toLowerCase()) || coin.symbol.toLowerCase().includes(seacrhValue.toLowerCase())
     })
+
     console.log("filterArry", filterArry)
     console.log("seacrhValue", seacrhValue)
     draw(filterArry)
@@ -161,7 +160,6 @@ function getCoinsCard(coinsData) {
         }
     })
 
-
     const checkboxButton = document.createElement("div")
     checkboxButton.className = "form-check form-switch";
     checkboxButton.id = `SwitchCheck${coinsData.id}`;
@@ -171,19 +169,6 @@ function getCoinsCard(coinsData) {
     checkbox.id = `#myCheck${coinsData.id}`
     checkbox.addEventListener('click', () => { addToSelectedCoins(coinsData) })
     checkboxButton.append(checkbox);
-    /*   const moreInfoButton = _getActionButton("primary", " more info", () => {
-          //_getMoreInfo(coinsData);
-          getMoreInfo(coinsData);
-      });
-   */
-
-    /*  function _getActionButton(className, title, action) {
-         const button = document.createElement("button");
-         button.className = `btn ml-5 btn-${className}`;
-         button.innerText = title;
-         button.addEventListener("click", action);
-         return button;
-     } */
 
     divCard.append(divBody, checkboxButton, h5, p, anchor, divCollapse)
     return divCard
@@ -195,9 +180,7 @@ function addToSelectedCoins(coinsData) {
     if (index.checked) {
         if (selectedCoins.length < 2) {
             selectedCoins.push(coinsData)
-            localStorage.setItem("selectedCoins", JSON.stringify(selectedCoins));
             console.log("selectedCoinToStore", selectedCoins)
-
         } else
 
             return _getModal(selectedCoins, coinsData.id)
@@ -206,61 +189,60 @@ function addToSelectedCoins(coinsData) {
         const deletedIndex = selectedCoins.findIndex((C) => C.id === coinsData.id);
         if (deletedIndex === -1) return;
         selectedCoins.splice(deletedIndex, 1);
-        localStorage.setItem("selectedCoins", JSON.stringify(selectedCoins));
         console.log(selectedCoins);
     }
-
-    function _getModal(selectedCoins) {
-        const mainModal = document.getElementById("modalcontent");
-        mainModal.innerHTML = " ";
-
-        const modalDiv = document.createElement('div');
-        modalDiv.className = "modal-dialog";
-
-        const modalContent = document.createElement("div");
-        modalContent.className = "modal-content";
-
-        const modalHeader = document.createElement("div");
-        modalHeader.className = "modal-header";
-        modalHeader.id = "exampleModalLabel";
-
-        const h5 = document.createElement("h5");
-        h5.classList = "modal-title";
-        h5.innerText = "ooops ,you chosed more than 5 coins";
-        modalHeader.append(h5)
+}
 
 
-        const modalBody = document.createElement("div");
-        modalBody.classList.add("modal-body");
-        const p = document.createElement("p");
-        p.innerText = "Please choose which coin do you want to delet";
-        const allSelectedCoins = creatOptions(selectedCoins);
-        modalBody.append(...allSelectedCoins, p);
+function _getModal(selectedCoins) {
+
+    DOM.modalDialog.innerHTML = " ";
+
+    const modalDiv = document.createElement("div");
+    modalDiv.className = "modal-dialog";
+
+    const modalContent = document.createElement("div");
+    modalContent.className = "modal-content";
+
+    const modalHeader = document.createElement("div");
+    modalHeader.classList.add("modal-header");
+    modalHeader.id = "exampleModalLabel";
+
+    const h5 = document.createElement("h5");
+    h5.classList = "modal-title";
+    h5.innerText = "ooops ,you chosed more than 5 coins";
+    modalHeader.append(h5)
+
+    const modalBody = document.createElement("div");
+    modalBody.classList.add("modal-body");
+    const p = document.createElement("p");
+    p.innerText = "Please choose which coin do you want to delet";
+    const allSelectedCoins = creatOptions(selectedCoins);
+    modalBody.append(...allSelectedCoins, p);
 
 
-        const modalFooter = document.createElement("div");
-        modalFooter.classList.add("modal-footer");
-        const cancleBT = _getActionButton("Cancel", "btn btn-secsses", () => deleteSelected(selectedCoins))
-        cancleBT.setAttribute("data-dismiss", "modal");
-        const saveBT = _getActionButton("Keep currnt", "btn btn-primary", () => saveSelected(selectedCoins))
+    const modalFooter = document.createElement("div");
+    modalFooter.classList.add("modal-footer");
+    const cancleBT = _getActionButton("Cancel", "btn btn-secsses", () => deleteSelected(selectedCoins))
+    cancleBT.setAttribute("data-dismiss", "modal");
+    const saveBT = _getActionButton("Keep currnt", "btn btn-primary", () => saveSelected(selectedCoins))
+    modalFooter.append(cancleBT, saveBT)
 
-        function _getActionButton(title, className, action) {
-            const button = document.createElement("button");
-            button.className = `btn ml-5 btn-${className}`;
-            button.innerText = title;
-            button.addEventListener("click", action);
-            return button;
-        }
-
-        modalFooter.append(cancleBT, saveBT)
-        modalDiv.append(modalContent, modalHeader, modalBody, modalFooter)
-        mainModal.append(modalDiv)
-        $("#modalcontent").modal("toggle")
-
+    function _getActionButton(title, className, action) {
+        const button = document.createElement("button");
+        button.className = `btn ml-5 btn-${className}`;
+        button.innerText = title;
+        button.addEventListener("click", action);
+        return button;
     }
 
+    modalContent.append(modalHeader, modalBody, modalFooter);
+    modalDiv.append(modalContent);
+    DOM.modalDialog.append(modalDiv)
+    $("#modalcontent").modal("toggle")
 
 }
+
 
 function creatOptions() {
     const coinsOptions = selectedCoins.map(coin => { return _selectedCoins(coin.id, coin.symbol) })
@@ -272,38 +254,40 @@ function creatOptions() {
         const input = document.createElement("input");
         input.type = "checkbox";
         input.className = "form-check-input";
-        input.id = `SwitchCheck${ID}`;
+        input.id = `checkBox${ID}`;
         const lable = document.createElement("label");
         lable.className = "custom-control-label";
         lable.setAttribute("for", `checkBox${ID}`)
         lable.innerText = CLASS;
         divCheckBox.append(input, lable)
         return divCheckBox;
-
     }
 }
 
+
 deleteSelected = (coinToDelet) => {
     console.log("canle")
-    index = document.getElementById(`SwitchCheck${coinToDelet.id}`);
+    index = document.getElementById(`#myCheck${coinToDelet.id}`);
     index.checked = !index.checked;
     $("#modalcontent").modal("hide");
 }
 
 saveSelected = (keepCurrentCoins) => {
     const currenCoin = selectedCoins.filter((coin, index) => {
-        const checkedCoin = document.getElementById(`checkBox${coin.id}`)
-        if (checkedCoin.checked)
+        const coinID = document.getElementById(`checkBox${coin.id}`)
+        if (coinID.checked)
             return coin;
     })
 
     currenCoin.map(coin => {
         const IndexsToDel = selectedCoins.findIndex(indexCoin => { return coin.id == indexCoin.id })
         selectedCoins.splice(IndexsToDel, 1);
-        index = document.getElementById(`SwitchCheck${coin.id}`);
-        index.checked = !index.checked;
+        index = document.getElementById(`#myCheck${coin.id}`);
+        index.checked == !index.checked;
     })
+
     selectedCoins.push(keepCurrentCoins)
-    console.log(selectedCoins);
+    /*  localStorage.setItem("selectedCoins", JSON.stringify(selectedCoins)); */
+    console.log("FinalSelcted", selectedCoins);
     $("#modalcontent").modal("hide");
 }
