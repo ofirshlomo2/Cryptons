@@ -202,19 +202,6 @@ function getCoinsCard(coinsData) {
         deleteFromFav(coinsData);
     });
 
-    /*    $('#SwitchCheck').click(function (e) {
-           if (e.target.checked) {
-               localStorage.checked = true;
-           } else {
-               localStorage.checked = false;
-           }
-       })
-       $(document).ready(function () {
-   
-           document.querySelector('#SwitchCheck').checked = localStorage.checked
-       });
-    */
-
     if (DOM.state.innerHTML == 'Home') {
         divCard.append(divBody, checkboxButton, h5, p, anchor, divCollapse);
     } else {
@@ -222,13 +209,24 @@ function getCoinsCard(coinsData) {
     }
     return divCard;
 }
-/* divCard.append(divBody, checkboxButton, h5, p, anchor, divCollapse) */
 
 function deleteFromFav(coinsData) {
     selectedCoins.splice(coinsData, 1);
     localStorage.setItem('selectedCoins', JSON.stringify(selectedCoins));
     if (selectedCoins == null) alert('you dont have favorite coins');
     else draw(selectedCoins);
+}
+
+function getCheckBoxState() {
+    const state = JSON.parse(localStorage.getItem("checkBoxStatus"))
+    if (!state) return;
+    state.map(theState => {
+        const coinsToCheck = data.find(coin => { return `#myCheck${coin.id}` == theState })
+        if (!coinsToCheck) return;
+        const checkedId = document.getElementById(`#myCheck${coinsToCheck.id}`)
+        checkedId.checked = !checkedId.checked;
+    })
+
 }
 
 
@@ -291,7 +289,7 @@ function getModal(selectedCoins) {
     modalFooter.classList.add("modal-footer");
     const cancleBT = _getActionButton("Cancel", "btn btn-secsses", () => deleteSelected(selectedCoins))
     cancleBT.setAttribute("data-dismiss", "modal");
-    const saveBT = _getActionButton("Keep currnt", "btn btn-primary", () => saveSelected(selectedCoins))
+    const saveBT = _getActionButton("Save", "btn btn-primary", () => saveSelected(selectedCoins))
     modalFooter.append(cancleBT, saveBT)
 
     function _getActionButton(title, className, action) {
@@ -347,7 +345,7 @@ saveSelected = (keepCurrentCoins) => {
 
     currenCoin.map(coin => {
         const IndexsToDel = selectedCoins.findIndex(indexCoin => { return coin.id === indexCoin.id })
-        selectedCoins.splice(IndexsToDel, 1);
+        selectedCoins.splice([IndexsToDel], 1);
         index = document.getElementById(`SwitchCheck${coin.id}`);
         index.checked = !index.checked;
     })
