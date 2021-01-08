@@ -1,54 +1,21 @@
-
 DOM = {
     content: document.getElementById("content"),
     loader: document.getElementById("loader"),
-    modalDialog: document.getElementById("modalcontent")
+    modalDialog: document.getElementById("modalcontent"),
+    state: document.getElementById('state'),
 };
 
 CONFIG = {
     COINS_URL: `https://api.coingecko.com/api/v3/coins/list`,
-    Home: 'Home_page',
-    LiveReport: 'liveReport.html',
-    AboutUs: 'aboutPage.html',
+    /*    Home: 'Home_page',
+       LiveReport: 'liveReport.html',
+       AboutUs: 'aboutPage.html', */
     COINS_URL_BY_VALUE: `https://api.coingecko.com/api/v3/coins/`,
 }
 
 let selectedCoins = [];
 let allCoinsArry = [];
-init();
 
-
-function init() {
-    window.localStorage.clear();
-    selectedCoins = getState();
-    /*  getAllData(); */
-    searchCoin();
-    getCoinsApi()
-}
-
-
-/* async function getAllData() {
-    const Coins = await getCoinsApi();
-} */
-
-async function getCoinsApi() {
-    try {
-        const result = await fetch(`${CONFIG.COINS_URL}`);
-        const initResult = await result.json();
-        DOM.loader.style.display = "none";
-        initResult.length = 50
-
-        allCoinsArry = [];
-        for (let i = 0; i < 50; i++)
-            allCoinsArry.push(initResult[i]);
-
-        console.log(initResult);
-        console.log("arry", allCoinsArry)
-        draw(initResult);
-    } catch {
-        alert("Failed to fetch data from API");
-    }
-}
 
 function getState() {
     try {
@@ -59,6 +26,23 @@ function getState() {
         return [];
     }
 }
+
+
+function init() {
+    /*  window.localStorage.clear(); */
+    selectedCoins = getState();
+    /*  getAllData(); */
+    searchCoin();
+    getCoinsApi()
+
+}
+
+init();
+
+/* async function getAllData() {
+    const Coins = await getCoinsApi();
+} */
+
 
 function searchCoin() {
     const searchDiv = document.getElementById("search")
@@ -91,6 +75,31 @@ function searchCoinFunction() {
     draw(filterArry)
 }
 
+/* function FavoritesPage() {
+    draw(selectedCoins);
+}
+ */
+
+async function getCoinsApi() {
+    try {
+        const result = await fetch(`${CONFIG.COINS_URL}`);
+        const initResult = await result.json();
+        DOM.loader.style.display = "none";
+        initResult.length = 50
+
+        allCoinsArry = [];
+        for (let i = 0; i < 50; i++) allCoinsArry.push(initResult[i]);
+
+        if (DOM.state.innerText == 'Home') draw(initResult);
+        else if (DOM.state.innerText == 'Favorites Coins') draw(selectedCoins);
+
+        console.log("selectedCoins", selectedCoins);
+        console.log("allCoinsArry", allCoinsArry)
+
+    } catch {
+        alert("Failed to fetch data from API");
+    }
+}
 
 function draw(coins) {
     if (!Array.isArray(coins)) return;
@@ -163,38 +172,69 @@ function getCoinsCard(coinsData) {
     const checkboxButton = document.createElement("div")
     checkboxButton.className = "form-check form-switch";
     checkboxButton.id = `SwitchCheck${coinsData.id}`;
+
     const checkbox = document.createElement("input");
     checkbox.className = "form-check-input";
     checkbox.type = "checkbox";
     checkbox.id = `#myCheck${coinsData.id}`
+
     checkbox.addEventListener('click', () => { addToSelectedCoins(coinsData) })
     checkboxButton.append(checkbox);
 
-    divCard.append(divBody, checkboxButton, h5, p, anchor, divCollapse)
-    return divCard
+    const deleteBtn = document.createElement('btn');
+    deleteBtn.className = 'btn btn-success';
+    deleteBtn.innerHTML = 'remove from favorite';
+    deleteBtn.addEventListener('click', () => {
+        deleteFromFav(coinsData);
+    });
+
+
+    if (DOM.state.innerHTML == 'Home') {
+        divCard.append(divBody, checkboxButton, h5, p, anchor, divCollapse);
+    } else {
+        divCard.append(divBody, h5, p, anchor, divCollapse, deleteBtn);
+    }
+    return divCard;
+}
+/* divCard.append(divBody, checkboxButton, h5, p, anchor, divCollapse) */
+
+function deleteFromFav(coinsData) {
+    selectedCoins.splice(coinsData, 1);
+    localStorage.setItem('selectedCoins', JSON.stringify(selectedCoins));
+    if (selectedCoins == null) alert('you dont have favorite coins');
+    else draw(selectedCoins);
 }
 
 
 function addToSelectedCoins(coinsData) {
     const index = document.getElementById(`#myCheck${coinsData.id}`);
     if (index.checked) {
+        const isAlreadyExist = selectedCoins.some((c) => c.id === coinsData.id);
+        if (isAlreadyExist) {
+            index.checked = !index.checked;
+            alert('The coin is already exist in your favorites coins');
+            return;
+        }
         if (selectedCoins.length < 2) {
             selectedCoins.push(coinsData)
-            console.log("selectedCoinToStore", selectedCoins)
+            localStorage.setItem('selectedCoins', JSON.stringify(selectedCoins));
+            console.log("selectedCoins", selectedCoins)
         } else
 
-            return _getModal(selectedCoins, coinsData.id)
+            return getModal(selectedCoins, coinsData.id)
     }
     else {
         const deletedIndex = selectedCoins.findIndex((C) => C.id === coinsData.id);
         if (deletedIndex === -1) return;
         selectedCoins.splice(deletedIndex, 1);
+        localStorage.setItem('selectedCoins', JSON.stringify(selectedCoins));
+
         console.log(selectedCoins);
     }
 }
 
 
-function _getModal(selectedCoins) {
+function getModal(selectedCoins) {
 
     DOM.modalDialog.innerHTML = " ";
 
@@ -266,8 +306,8 @@ function creatOptions() {
 
 
 deleteSelected = (coinToDelet) => {
-    console.log("canle")
-    index = document.getElementById(`#myCheck${coinToDelet.id}`);
+    //console.log("canle")
+    index = document.getElementById(`SwitchCheck${coinToDelet.id}`);
     index.checked = !index.checked;
     $("#modalcontent").modal("hide");
 }
@@ -280,10 +320,10 @@ saveSelected = (keepCurrentCoins) => {
     })
 
     currenCoin.map(coin => {
-        const IndexsToDel = selectedCoins.findIndex(indexCoin => { return coin.id == indexCoin.id })
+        const IndexsToDel = selectedCoins.findIndex(indexCoin => { return coin.id === indexCoin.id })
         selectedCoins.splice(IndexsToDel, 1);
-        index = document.getElementById(`#myCheck${coin.id}`);
-        index.checked == !index.checked;
+        index = document.getElementById(`SwitchCheck${coin.id}`);
+        index.checked = !index.checked;
     })
 
     selectedCoins.push(keepCurrentCoins)
