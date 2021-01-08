@@ -26,7 +26,7 @@ function getState() { // get local storage stat
 
 
 function init() {
-    DOM.alert.style.display = "none"
+    
     selectedCoins = getState();
     getCoinsApi()
 }
