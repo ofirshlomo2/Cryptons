@@ -32,7 +32,7 @@ function init() {
     /*  window.localStorage.clear(); */
     selectedCoins = getState();
     /*  getAllData(); */
-    searchCoin();
+    /*  searchCoin(); */
     getCoinsApi()
 
 }
@@ -44,7 +44,7 @@ init();
 } */
 
 
-function searchCoin() {
+/* function searchCoin() {
     const searchDiv = document.getElementById("search")
     const div = document.createElement("div");
     div.className = "form-group p-3";
@@ -61,9 +61,22 @@ function searchCoin() {
     searchBT.addEventListener("click", searchCoinFunction)
     searchDiv.append(input, searchBT);
     return searchDiv;
+
+}
+ */
+function searchCoinFunction() {
+    const seacrhValue = document.getElementById('search').value.toLowerCase();
+    filterArry = allCoinsArry.filter((coin) => {
+        return (
+            coin.symbol.includes(seacrhValue.toLowerCase()) ||
+            coin.symbol.toLowerCase().includes(seacrhValue.toLowerCase())
+        );
+    });
+
+    draw(filterArry);
 }
 
-function searchCoinFunction() {
+/*      const seacrhValue = document.getElementById('search').value.toLowerCase()
     DOM.loader.style.display = "block";
     const seacrhValue = searchInput.value.toLowerCase();
     const filterArry = allCoinsArry.filter(coin => {
@@ -72,8 +85,8 @@ function searchCoinFunction() {
 
     console.log("filterArry", filterArry)
     console.log("seacrhValue", seacrhValue)
-    draw(filterArry)
-}
+    draw(filterArry)  */
+
 
 /* function FavoritesPage() {
     draw(selectedCoins);
@@ -169,6 +182,7 @@ function getCoinsCard(coinsData) {
         }
     })
 
+
     const checkboxButton = document.createElement("div")
     checkboxButton.className = "form-check form-switch";
     checkboxButton.id = `SwitchCheck${coinsData.id}`;
@@ -182,12 +196,24 @@ function getCoinsCard(coinsData) {
     checkboxButton.append(checkbox);
 
     const deleteBtn = document.createElement('btn');
-    deleteBtn.className = 'btn btn-success';
-    deleteBtn.innerHTML = 'remove from favorite';
+    deleteBtn.className = 'btn btn-danger m-2';
+    deleteBtn.innerHTML = 'Remove coin';
     deleteBtn.addEventListener('click', () => {
         deleteFromFav(coinsData);
     });
 
+    /*    $('#SwitchCheck').click(function (e) {
+           if (e.target.checked) {
+               localStorage.checked = true;
+           } else {
+               localStorage.checked = false;
+           }
+       })
+       $(document).ready(function () {
+   
+           document.querySelector('#SwitchCheck').checked = localStorage.checked
+       });
+    */
 
     if (DOM.state.innerHTML == 'Home') {
         divCard.append(divBody, checkboxButton, h5, p, anchor, divCollapse);
