@@ -26,13 +26,13 @@ function getState() { // get local storage stat
 
 
 function init() {
-    
+
     selectedCoins = getState();
     getCoinsApi()
 }
 init();
 
-function searchCoinFunction() { // local search function 
+function searchCoinFunction() { // local search function //search id on HTML page
     const seacrhValue = document.getElementById('search').value.toLowerCase();
     filterArry = allCoinsArry.filter((coin) => {
         return (
@@ -177,7 +177,7 @@ function addToSelectedCoins(coinsData) { // add to favorites function also valid
             index.checked = !index.checked;
 
             DOM.alert.style.display = "block"
-            /* alert('The coin is already exist in your favorites coins'); */
+            /* alert('The coin is already exist in your favorites coins'); */ //alert from HTML
             return;
         }
         if (selectedCoins.length < 5) {
