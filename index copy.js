@@ -3,7 +3,6 @@ DOM = {
     loader: document.getElementById("loader"),
     modalDialog: document.getElementById("modalcontent"),
     state: document.getElementById('state'),
-    alert: document.getElementById("alert")
 };
 
 CONFIG = {
@@ -13,8 +12,10 @@ CONFIG = {
 
 let selectedCoins = [];
 let allCoinsArry = [];
+let checkBoxState = [];
 
-function getState() { // get local storage stat
+
+function getState() {
     try {
         const result = JSON.parse(localStorage.getItem("selectedCoins")) || [];
         return result;
@@ -26,13 +27,15 @@ function getState() { // get local storage stat
 
 
 function init() {
-    DOM.alert.style.display = "none"
+    /*  window.localStorage.clear(); */
     selectedCoins = getState();
     getCoinsApi()
+
 }
+
 init();
 
-function searchCoinFunction() { // local search function 
+function searchCoinFunction() {
     const seacrhValue = document.getElementById('search').value.toLowerCase();
     filterArry = allCoinsArry.filter((coin) => {
         return (
@@ -44,16 +47,16 @@ function searchCoinFunction() { // local search function
     draw(filterArry);
 }
 
-async function getCoinsApi() { // APIs call function 
+async function getCoinsApi() {
     try {
         const result = await fetch(`${CONFIG.COINS_URL}`);
         const initResult = await result.json();
         DOM.loader.style.display = "none";
         initResult.length = 50
-        //Limited the array for 50 coins only
+
         allCoinsArry = [];
         for (let i = 0; i < 50; i++) allCoinsArry.push(initResult[i]);
-        ////---///
+
         if (DOM.state.innerText == 'Home') draw(initResult);
         else if (DOM.state.innerText == 'Favorites Coins') draw(selectedCoins);
 
@@ -65,14 +68,14 @@ async function getCoinsApi() { // APIs call function
     }
 }
 
-function draw(coins) { // draw function marge all coins to UI
+function draw(coins) {
     if (!Array.isArray(coins)) return;
     content.innerHTML = " ";
     const CoinsCard = coins.map((coin) => getCoinsCard(coin));
     DOM.content.append(...CoinsCard);
 }
 
-function getCoinsCard(coinsData) { // Creat cards functions
+function getCoinsCard(coinsData) {
     const divCard = document.createElement('div');
     divCard.className = "card m-2"
     divCard.style = "width: 18rem;"
@@ -100,7 +103,7 @@ function getCoinsCard(coinsData) { // Creat cards functions
     anchor.href = `#more_info_${coinsData.id}`;
     anchor.className = "btn btn-dark m-2";
     anchor.setAttribute("data-toggle", "collapse");
-    anchor.addEventListener("click", async function () { /// More info created function
+    anchor.addEventListener("click", async function () {
         divCollapseBody.innerHTML = " ";
         DOM.loader.style.display = "block";
         const result = await fetch(`${CONFIG.COINS_URL_BY_VALUE}${coinsData.id}`, coinsData);
@@ -108,7 +111,7 @@ function getCoinsCard(coinsData) { // Creat cards functions
         DOM.loader.style.display = "none";
         console.log(moreResult)
 
-        const moreInfCONFIG = { //get information about coins value by USD , EUR ,NIS
+        const moreInfCONFIG = {
             img: moreResult.image.thumb,
             coinByUSD: moreResult.market_data.current_price.usd,
             cooinByILS: moreResult.market_data.current_price.ils,
@@ -133,17 +136,18 @@ function getCoinsCard(coinsData) { // Creat cards functions
         }
     })
 
+
     const checkboxButton = document.createElement("div")
     checkboxButton.className = "form-check form-switch";
     checkboxButton.id = `SwitchCheck${coinsData.id}`;
 
-    const checkBox = document.createElement("input");
-    checkBox.className = "form-check-input";
-    checkBox.type = "checkbox";
-    checkBox.id = `#myCheck${coinsData.id}`
+    const checkbox = document.createElement("input");
+    checkbox.className = "form-check-input";
+    checkbox.type = "checkbox";
+    checkbox.id = `#myCheck${coinsData.id}`
 
-    checkBox.addEventListener('click', () => { addToSelectedCoins(coinsData) }) /// Add to Favorites coins function
-    checkboxButton.append(checkBox);
+    checkbox.addEventListener('click', () => { addToSelectedCoins(coinsData) })
+    checkboxButton.append(checkbox);
 
     const deleteBtn = document.createElement('btn');
     deleteBtn.className = 'btn btn-danger m-2';
@@ -152,7 +156,7 @@ function getCoinsCard(coinsData) { // Creat cards functions
         deleteFromFav(coinsData);
     });
 
-    if (DOM.state.innerHTML == 'Home') { // valida waht to show 
+    if (DOM.state.innerHTML == 'Home') {
         divCard.append(divBody, checkboxButton, h5, p, anchor, divCollapse);
     } else {
         divCard.append(divBody, h5, p, anchor, divCollapse, deleteBtn);
@@ -160,24 +164,33 @@ function getCoinsCard(coinsData) { // Creat cards functions
     return divCard;
 }
 
-function deleteFromFav(coinsData) { //Delete from Favorites function
+function deleteFromFav(coinsData) {
     selectedCoins.splice(coinsData, 1);
     localStorage.setItem('selectedCoins', JSON.stringify(selectedCoins));
     if (selectedCoins == null) alert('you dont have favorite coins');
     else draw(selectedCoins);
 }
 
+function getCheckBoxState() {
+    const state = JSON.parse(localStorage.getItem("checkBoxStatus"))
+    if (!state) return;
+    state.map(theState => {
+        const coinsToCheck = data.find(coin => { return `#myCheck${coin.id}` == theState })
+        if (!coinsToCheck) return;
+        const checkedId = document.getElementById(`#myCheck${coinsToCheck.id}`)
+        checkedId.checked = !checkedId.checked;
+    })
+
+}
 
 
-function addToSelectedCoins(coinsData) { // add to favorites function also validted if id is already exist
+function addToSelectedCoins(coinsData) {
     const index = document.getElementById(`#myCheck${coinsData.id}`);
     if (index.checked) {
         const isAlreadyExist = selectedCoins.some((c) => c.id === coinsData.id);
         if (isAlreadyExist) {
             index.checked = !index.checked;
-
-            DOM.alert.style.display = "block"
-            /* alert('The coin is already exist in your favorites coins'); */
+            alert('The coin is already exist in your favorites coins');
             return;
         }
         if (selectedCoins.length < 5) {
@@ -199,9 +212,10 @@ function addToSelectedCoins(coinsData) { // add to favorites function also valid
 }
 
 
-function getModal(selectedCoins) { /// Modal creadted function 
+function getModal(selectedCoins) {
 
     DOM.modalDialog.innerHTML = " ";
+
     const modalDiv = document.createElement("div");
     modalDiv.className = "modal-dialog";
 
@@ -248,7 +262,7 @@ function getModal(selectedCoins) { /// Modal creadted function
 }
 
 
-function creatOptions() { // Option to pick up the coins if user coshed more than 5
+function creatOptions() {
     const coinsOptions = selectedCoins.map(coin => { return _selectedCoins(coin.id, coin.symbol) })
     return (coinsOptions)
 
@@ -269,14 +283,15 @@ function creatOptions() { // Option to pick up the coins if user coshed more tha
 }
 
 
-deleteSelected = (coinToDelet) => { // Indicate the is of what we would like to remove  
+deleteSelected = (coinToDelet) => {
+    //console.log("canle")
     index = document.getElementById(`SwitchCheck${coinToDelet.id}`);
     index.checked = !index.checked;
     $("#modalcontent").modal("hide");
 }
 
-saveSelected = (addCoin) => { //removing function 
-    const removeCoin = selectedCoins.filter((coin) => {
+saveSelected = (keepCurrentCoins) => {
+    const removeCoin = selectedCoins.filter((coin, index) => {
         const coinID = document.getElementById(`checkBox${coin.id}`)
         if (coinID.checked)
             return coin;
@@ -284,12 +299,16 @@ saveSelected = (addCoin) => { //removing function
 
     removeCoin.map(coin => {
         const IndexsToDel = selectedCoins.findIndex(indexCoin => { return coin.id === indexCoin.id })
+        const idCoinToRemove = selectedCoins[IndexsToDel].id
         selectedCoins.splice(IndexsToDel, 1);
-        index = document.getElementById(`#myCheck${coin.id}`);
+        const IndexsToRemoveFromState = checkBoxState.findIndex(indexCoin => { return `SwitchCheck${idCoinToRemove}` })
+        checkBoxState.splice(IndexsToRemoveFromState, 1);
+        index = document.getElementById(`SwitchCheck${coin.id}`);
         index.checked = !index.checked;
     })
 
-    selectedCoins.push(addCoin) // Updated selected coins function 
+    selectedCoins.push(keepCurrentCoins)
+    checkBoxState.push(`SwitchCheck${keepCurrentCoins.id}`)
     console.log("FinalSelcted", selectedCoins);
     $("#modalcontent").modal("hide");
 }
